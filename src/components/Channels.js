@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
+import { Icon } from 'semantic-ui-react';
 
 const ChannelWrapper = styled.div`
   grid-column: 2;
@@ -45,33 +46,41 @@ const user = ({ id, name }) => (
     </SideBarListItem>
 );
 
-const Channels = (props) => {
-    const {
-        teamName,
-        username,
-        channels,
-        users
-    } = props;
-    return (
-        <ChannelWrapper>
-            <PushLeft>
-                <TeamNameHeader>{teamName}</TeamNameHeader>
-                {username}
-            </PushLeft>
-            <div>
-                <SideBarList>
-                    <SideBarListHeader>Channels</SideBarListHeader>
-                    {channels.map(channel)}
-                </SideBarList>
-            </div>
-            <div>
-                <SideBarList>
-                    <SideBarListHeader>Direct Messages</SideBarListHeader>
-                    {users.map(user)}
-                </SideBarList>
-            </div>
-        </ChannelWrapper>
-    )
-};
+class Channels extends Component {
 
+    render () {
+        const {
+            teamName,
+            username,
+            channels,
+            users,
+            onAddChannelClick
+        } = this.props;
+        return (
+            <ChannelWrapper>
+                <PushLeft>
+                    <TeamNameHeader>{teamName}</TeamNameHeader>
+                    {username}
+                </PushLeft>
+                <div>
+                    <SideBarList>
+                        <SideBarListHeader>
+                            Channels
+                            <Icon onClick={onAddChannelClick}
+                                  name="add circle"
+                            />
+                        </SideBarListHeader>
+                        {channels.map(channel)}
+                    </SideBarList>
+                </div>
+                <div>
+                    <SideBarList>
+                        <SideBarListHeader>Direct Messages</SideBarListHeader>
+                        {users.map(user)}
+                    </SideBarList>
+                </div>
+            </ChannelWrapper>
+        )
+    };
+}
 export default Channels;

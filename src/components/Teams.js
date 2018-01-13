@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-
+import { Link } from 'react-router-dom';
 
 const TeamWrapper = styled.div`
   grid-column: 1;
@@ -34,7 +34,7 @@ const TeamListItem = styled.li`
   }
 `;
 
-const team = ({ id, letter  }) => <TeamListItem key={`team_${id}`}>{letter}</TeamListItem>;
+const team = ({ id, letter  }) => <Link to={`/view-team/${id}`}><TeamListItem key={`team_${id}`}>{letter}</TeamListItem></Link>;
 
 const Teams = (props) => {
     const { teams } = props;

@@ -10,26 +10,26 @@ import Routes from './routes';
 
 const httpLink = createHttpLink({ uri: 'http://localhost:3001/graphql' });
 
-// const authMiddleware = new ApolloLink((operation, forward) => {
-//     // add the authorization to the headers
-//     operation.setContext(({ headers = {} }) => ({
-//         headers: {
-//             ...headers,
-//         'x-token': localStorage.getItem('token'),
-//         'x-refresh-token': localStorage.getItem('refreshToken'),
-//         }
-//     }));
-//
-//     return forward(operation);
-// })
-
-
-const middlewareLink = setContext(() => ({
-    headers: {
+const authMiddleware = new ApolloLink((operation, forward) => {
+    // add the authorization to the headers
+    operation.setContext(({ headers = {} }) => ({
+        headers: {
+            ...headers,
         'x-token': localStorage.getItem('token'),
         'x-refresh-token': localStorage.getItem('refreshToken'),
-    },
-}));
+        }
+    }));
+
+    return forward(operation);
+})
+
+
+// const middlewareLink = setContext(() => ({
+//     headers: {
+//         'x-token': localStorage.getItem('token'),
+//         'x-refresh-token': localStorage.getItem('refreshToken'),
+//     },
+// }));
 
 const afterwareLink = new ApolloLink((operation, forward) => {
     const { headers } = operation.getContext();
@@ -50,7 +50,7 @@ const afterwareLink = new ApolloLink((operation, forward) => {
     return forward(operation);
 });
 
-const link = afterwareLink.concat(middlewareLink.concat(httpLink));
+const link = afterwareLink.concat(authMiddleware.concat(httpLink));
 
 
 const client = new ApolloClient({

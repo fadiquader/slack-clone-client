@@ -33,11 +33,12 @@ class CreateTeam extends Component {
             response = await this.props.mutate({
                 variables: { name }
             });
-            this.props.history.push('/')
         } catch (err) {
-            this.props.history.push('/login')
+            this.props.history.push('/login');
+            return;
         }
-        // const { ok, errors } = response.data.createTeam;
+        const { ok, errors, team } = response.data.createTeam;
+        this.props.history.push(`/view-team/${team.id}`)
         // if(ok) {
         //     this.props.history.push('/')
         // } else {
@@ -80,6 +81,9 @@ const createTeamMutaion = gql`
 mutation ($name: String!) {
   createTeam(name: $name) {
     ok
+    team {
+      id
+    }
     errors {
       path
       message

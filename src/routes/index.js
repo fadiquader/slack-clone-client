@@ -26,29 +26,33 @@ const isAuthenticated = () => {
     return true;
 };
 
-const PrivateRoute = ({ component: Component, ...rest }) => (
-    <Route
-        {...rest}
-        render={props =>
-            (isAuthenticated() ? (
-                <Component {...props} />
-            ) : (
-                <Redirect
-                    to={{
-                        pathname: '/login',
-                    }}
-                />
-            ))}
-    />
-);
+const PrivateRoute = ({ component: Component, inverse, ...rest }) => {
+    let authenticated = isAuthenticated();
+    if(inverse) authenticated = !isAuthenticated;
+    return (
+        <Route
+            {...rest}
+            render={props =>
+                (authenticated ? (
+                    <Component {...props} />
+                ) : (
+                    <Redirect
+                        to={{
+                            pathname: !inverse ? '/login' : '/',
+                        }}
+                    />
+                ))}
+        />
+    )
+};
 
 export default () => (
     <Router>
         <Switch>
             <Route path="/" exact component={Home} />
             <Route path="/register" component={Register} />
-            <Route path="/login" component={Login} />
-            <Route path="/view-team" component={ViewTeam} />
+            <PrivateRoute path="/login" inverse={true} component={Login} />
+            <Route path="/view-team/:teamId?/:channelId?" exact component={ViewTeam} />
             <PrivateRoute path="/create-team" exact component={CreateTeam} />
         </Switch>
     </Router>
