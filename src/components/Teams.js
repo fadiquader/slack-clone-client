@@ -7,6 +7,8 @@ const TeamWrapper = styled.div`
   grid-row: 1 / 4;
   background-color: #362234;
   color: #958993;
+  overflow-y: auto;
+
 `;
 
 const TeamList = styled.ul`
@@ -34,7 +36,7 @@ const TeamListItem = styled.li`
   }
 `;
 
-const team = ({ id, letter  }) => <Link to={`/view-team/${id}`}><TeamListItem key={`team_${id}`}>{letter}</TeamListItem></Link>;
+const team = ({ id, letter  }) => <Link key={`team-${id}`} to={`/view-team/${id}`}><TeamListItem >{letter}</TeamListItem></Link>;
 
 const Teams = (props) => {
     const { teams } = props;

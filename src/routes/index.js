@@ -28,7 +28,7 @@ const isAuthenticated = () => {
 
 const PrivateRoute = ({ component: Component, inverse, ...rest }) => {
     let authenticated = isAuthenticated();
-    if(inverse) authenticated = !isAuthenticated;
+    if(inverse) authenticated = !authenticated;
     return (
         <Route
             {...rest}

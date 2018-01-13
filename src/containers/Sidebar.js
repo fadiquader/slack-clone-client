@@ -1,8 +1,4 @@
 import React, { Component } from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
-import _ from 'lodash';
-
 import Channels from '../components/Channels';
 import Teams from '../components/Teams';
 import AddChannelModal from '../components/AddChannelModal';
@@ -20,15 +16,7 @@ class Sidebar extends Component {
         this.setState({ openAddChannelModal: false })
     };
     render () {
-        const { data: { loading, allTeams }, currentTeamId } = this.props;
-        if(loading) {
-            return 'loading...'
-        }
-        const teamIdx = currentTeamId ? _.findIndex(allTeams, ['id', parseInt(currentTeamId, 10)]) : 0;
-        const team = allTeams[teamIdx];
-        const teams = allTeams.map(({ id, name }) => ({
-            id, letter: name.charAt(0).toUpperCase()
-        }));
+        const { teams, team } = this.props;
         return [
             <Teams
                 key="sidebar-teams"
@@ -38,13 +26,14 @@ class Sidebar extends Component {
                 key="sidebar-channels"
                 teamName={team.name}
                 username="fadiqua"
+                teamId={team.id}
                 channels={team.channels}
                 users={[]}
                 onAddChannelClick={this.handleOpenAddChannelClick}
             />,
             <AddChannelModal
                 key="sidebar-add-channel-modal"
-                teamId={currentTeamId}
+                teamId={team.id}
                 onClose={this.handleCloseAddChannelClick}
                 open={this.state.openAddChannelModal}
             />
@@ -52,16 +41,4 @@ class Sidebar extends Component {
     };
 }
 
-const allTeamsQuery = gql`
-{
-  allTeams {
-    id
-    name
-    channels {
-      id
-      name
-    }
-  }
-}
-`;
-export default graphql(allTeamsQuery)(Sidebar);
+export default Sidebar;

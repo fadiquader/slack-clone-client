@@ -3,6 +3,9 @@ import { Button, Form, Input, Modal } from 'semantic-ui-react'
 import { withFormik } from 'formik';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import findIndex from 'lodash/findIndex';
+
+import { allTeamsQuery } from '../graphql/team';
 
 const AddChannelModal = (props) => {
     const {
@@ -22,7 +25,10 @@ const AddChannelModal = (props) => {
             <Modal.Content>
                 <Form>
                     <Form.Field>
-                        <Input fluid name="name"
+                        <Input fluid
+                               value={values.name}
+                               onChange={handleChange}
+                               name="name"
                                placeholder="Add a channel"
                                onBlur={handleBlur}
                                disabled={isSubmitting}
@@ -48,7 +54,13 @@ const AddChannelModal = (props) => {
 
 const createChannelMutaion = gql`
 mutation createChannel($teamId: Int!, $name: String!) {
-  createChannel(teamId: $teamId, name: $name)
+  createChannel(teamId: $teamId, name: $name) {
+    ok
+    channel {
+        id
+        name
+    }
+  }
 }
 `;
 const AddChannelModalWithForm = compose(
@@ -67,11 +79,32 @@ const AddChannelModalWithForm = compose(
         }) => {
             setSubmitting(true);
             const response = await mutate({
-                variables: { teamId, name: values.name }
-            })
+                variables: { teamId, name: values.name },
+                optimisticResponse: {
+                    __typename: 'Mutation',
+                    createChannel: {
+                        __typename: "ChannelResponse",
+                        ok: true,
+                        channel: {
+                            __typename: 'Channel',
+                            id: -1,
+                            name: values.name,
+                        },
+                    }
+                },
+                update: (store, { data: { createChannel } }) => {
+                    const { ok, channel } = createChannel;
+                    if(!ok) return;
+                    const data = store.readQuery({ query: allTeamsQuery });
+                    const teamIdx = findIndex(data.allTeams, ['id', parseInt(teamId, 10)]);
+                    data.allTeams[teamIdx].channels.push(channel)
+                    store.writeQuery({ query: allTeamsQuery, data })
+                }
+            });
+            onClose();
             setSubmitting(false);
             resetForm();
-            onClose();
+
         }
     })
 )(AddChannelModal);
