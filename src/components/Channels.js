@@ -57,6 +57,7 @@ class Channels extends Component {
             users,
             onAddChannelClick,
             teamId,
+            onInvitePeopleClick
         } = this.props;
         return (
             <ChannelWrapper>
@@ -80,6 +81,12 @@ class Channels extends Component {
                         <SideBarListHeader>Direct Messages</SideBarListHeader>
                         {users.map(user)}
                     </SideBarList>
+                </div>
+                <div>
+                    <a href="#invite-people" onClick={onInvitePeopleClick} >
+                        + Invite People
+                    </a>
+
                 </div>
             </ChannelWrapper>
         )

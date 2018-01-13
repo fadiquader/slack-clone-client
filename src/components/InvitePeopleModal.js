@@ -1,13 +1,13 @@
+// npm packages
 import React from 'react';
-import { Button, Form, Input, Modal } from 'semantic-ui-react';
+import { Button, Form, Input, Modal } from 'semantic-ui-react'
 import { withFormik } from 'formik';
 import { compose, graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import findIndex from 'lodash/findIndex';
+// local imports
+import { normalizeError } from '../utils';
 
-import { allTeamsQuery } from '../graphql/team';
-
-const AddChannelModal = (props) => {
+const InvitePeopleModal = (props) => {
     const {
         open,
         onClose,
@@ -21,19 +21,26 @@ const AddChannelModal = (props) => {
     } = props;
     return (
         <Modal open={open} onClose={!isSubmitting ? onClose : null} >
-            <Modal.Header>Add a channel</Modal.Header>
+            <Modal.Header>Invite People to your Team</Modal.Header>
             <Modal.Content>
                 <Form>
-                    <Form.Field>
+                    <Form.Field error={!!errors.email}>
                         <Input fluid
                                value={values.name}
                                onChange={handleChange}
-                               name="name"
-                               placeholder="Add a channel"
+                               name="email"
+                               placeholder="Insert User Email..."
                                onBlur={handleBlur}
                                disabled={isSubmitting}
+                               type="email"
                         />
                     </Form.Field>
+                    <div>
+                        { touched.email && Object.keys(errors).map(k => errors[k].map((msg, i) =>
+                            <p key={`error-${k}-${i}`}>{msg} <br/></p>
+                        ))}
+                        <br/>
+                    </div>
                     <Form.Field>
                         <Button
                             color='green'
@@ -49,24 +56,25 @@ const AddChannelModal = (props) => {
                 </Form>
             </Modal.Content>
         </Modal>
-    )
+    );
 };
 
-const createChannelMutaion = gql`
-mutation createChannel($teamId: Int!, $name: String!) {
-  createChannel(teamId: $teamId, name: $name) {
+const addTeamMemberMutation = gql`
+mutation ($email: String!, $teamId: Int!){
+  addTeamMember(email: $email, teamId: $teamId) {
     ok
-    channel {
-        id
-        name
+    errors {
+      path
+      message
     }
   }
 }
 `;
-const AddChannelModalWithForm = compose(
-    graphql(createChannelMutaion),
+
+const InvitePeoplelModalWithForm = compose(
+    graphql(addTeamMemberMutation),
     withFormik({
-        mapPropsToValues: props => ({ name: '' }),
+        mapPropsToValues: props => ({ email: '' }),
         validate: (values, props) => {
             const errors = {};
             // values.name
@@ -79,34 +87,16 @@ const AddChannelModalWithForm = compose(
         }) => {
             setSubmitting(true);
             const response = await mutate({
-                variables: { teamId, name: values.name },
-                optimisticResponse: {
-                    __typename: 'Mutation',
-                    createChannel: {
-                        __typename: "ChannelResponse",
-                        ok: true,
-                        channel: {
-                            __typename: 'Channel',
-                            id: -1,
-                            name: values.name,
-                        },
-                    }
-                },
-                update: (store, { data: { createChannel } }) => {
-                    const { ok, channel } = createChannel;
-                    if(!ok) return;
-                    const data = store.readQuery({ query: allTeamsQuery });
-                    const teamIdx = findIndex(data.allTeams, ['id', parseInt(teamId, 10)]);
-                    data.allTeams[teamIdx].channels.push(channel)
-                    store.writeQuery({ query: allTeamsQuery, data })
-                }
+                variables: {teamId, email: values.email},
             });
+            const { addTeamMember: { ok, errors }} = response.data;
+            if(!ok) {
+                setErrors(normalizeError(errors));
+                return;
+            }
             onClose();
-            setSubmitting(false);
             resetForm();
-
         }
     })
-)(AddChannelModal);
-
-export default AddChannelModalWithForm
+)(InvitePeopleModal);
+export default InvitePeoplelModalWithForm;
