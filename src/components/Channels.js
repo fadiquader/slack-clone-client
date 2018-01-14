@@ -31,7 +31,14 @@ const SideBarListItem = styled.li`
   }
 `;
 
-const SideBarListHeader = styled.li`${paddingLeft};`;
+const SideBarListHeader = styled.li`
+${paddingLeft};
+i {
+    float: right;
+    cursor: pointer;
+    font-size: 20px;
+}
+`;
 
 const PushLeft = styled.div`${paddingLeft};`;
 
@@ -57,6 +64,7 @@ class Channels extends Component {
             users,
             onAddChannelClick,
             teamId,
+            isOwner,
             onInvitePeopleClick
         } = this.props;
         return (
@@ -69,9 +77,9 @@ class Channels extends Component {
                     <SideBarList>
                         <SideBarListHeader>
                             Channels
-                            <Icon onClick={onAddChannelClick}
+                            {isOwner && <Icon onClick={onAddChannelClick}
                                   name="add circle"
-                            />
+                            />}
                         </SideBarListHeader>
                         {channels.map(c => channel(c, teamId))}
                     </SideBarList>
@@ -82,12 +90,11 @@ class Channels extends Component {
                         {users.map(user)}
                     </SideBarList>
                 </div>
-                <div>
+                {isOwner && <div>
                     <a href="#invite-people" onClick={onInvitePeopleClick} >
                         + Invite People
                     </a>
-
-                </div>
+                </div>}
             </ChannelWrapper>
         )
     };

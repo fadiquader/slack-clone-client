@@ -1,5 +1,6 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
+import { Link } from 'react-router-dom';
 import findIndex from 'lodash/findIndex';
 
 import Header from '../components/Header';
@@ -7,30 +8,44 @@ import Messages from '../components/Messages';
 import SendMessage from '../components/SendMessage';
 import AppLayout from '../components/AppLayout';
 import Sidebar from '../containers/Sidebar';
+import MessageContainer from '../containers/MessageContainer';
+
 import { allTeamsQuery } from '../graphql/team';
 
 const ViewTeam = (props) => {
-    const { match: { params }, data: { loading, allTeams } } = props;
+    const { match: { params }, data: { loading, allTeams, inviteTeams } } = props;
     if(loading) return null;
+    const teams = [...allTeams, ...inviteTeams];
+    if(!teams.length) {
+        return (
+            <div>
+                No Teams Found! <Link to={`/create-team`}>Create a Team</Link>
+            </div>
+        )
+    }
     const { teamId, channelId } = params;
-    const teamIdx = !!teamId ? findIndex(allTeams, ['id', parseInt(teamId, 10)]) : 0;
-    const team = allTeams[teamIdx];
-    const channelIdx = !!channelId ? findIndex(team.channels, ['id', parseInt(channelId, 10)]) : 0;
+    const teamIdInt = parseInt(teamId || 0, 10);
+    const channelIdInt = parseInt(channelId || 0, 10);
+    if(isNaN(teamIdInt) || isNaN(channelIdInt)) {
+        return (
+            <div>
+                Invalid parameters, <Link to={`/view-team`}>Go back</Link>
+            </div>
+        )
+    }
+    const teamIdx = !!teamId ? findIndex(teams, ['id', parseInt(teamIdInt, 10)]) : 0;
+    const team = teams[teamIdx];
+    const channelIdx = !!channelId ? findIndex(team.channels, ['id', parseInt(channelIdInt, 10)]) : 0;
     const channel = team.channels[channelIdx];
-    const teams = allTeams.map(({ id, name }) => ({
+    const teamsTh = teams.map(({ id, name }) => ({
         id, letter: name.charAt(0).toUpperCase()
     }));
     return (
         <AppLayout>
-            <Sidebar teams={teams} team={team} currentTeamId={teamId|| 0 } />
-            <Header channelName={channel.name} />
-            <Messages channelId={channel.id}>
-                <ul className="message-list">
-                    <li />
-                    <li />
-                </ul>
-            </Messages>
-            <SendMessage channelName={channel.name}/>
+            <Sidebar teams={teamsTh} team={team} currentTeamId={teamId|| 0 } />
+            {channel && <Header channelName={channel.name} />}
+            {channel && <MessageContainer channelId={channel.id} />}
+            {channel && <SendMessage channelName={channel.name} channelId={channel.id}/>}
         </AppLayout>
     )
 };

@@ -8,14 +8,15 @@ const HeaderWrapper = styled.div`
 `;
 
 export default (props) => {
-    const { channelname } = props;
+    const { channelName } = props;
     return (
         <HeaderWrapper>
             <Header
                 as="h1"
                 textAlign="center"
+                color='violet'
             >
-                # {channelname}
+                #{channelName}
                 </Header>
         </HeaderWrapper>
     )
