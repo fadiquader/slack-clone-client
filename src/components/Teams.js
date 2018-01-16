@@ -36,7 +36,7 @@ const TeamListItem = styled.li`
   }
 `;
 
-const team = ({ id, letter  }) => <Link key={`team-${id}`} to={`/view-team/${id}`}><TeamListItem >{letter}</TeamListItem></Link>;
+const team = ({ id, letter  }, i) => <Link key={`team-${id}-${i}`} to={`/view-team/${id}`}><TeamListItem >{letter}</TeamListItem></Link>;
 
 const Teams = (props) => {
     const { teams } = props;

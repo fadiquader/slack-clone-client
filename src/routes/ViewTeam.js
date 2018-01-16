@@ -10,12 +10,13 @@ import AppLayout from '../components/AppLayout';
 import Sidebar from '../containers/Sidebar';
 import MessageContainer from '../containers/MessageContainer';
 
-import { allTeamsQuery } from '../graphql/team';
+import { meQuery } from '../graphql/team';
 
 const ViewTeam = (props) => {
-    const { match: { params }, data: { loading, allTeams, inviteTeams } } = props;
+    const { match: { params }, data: { loading, me } } = props;
     if(loading) return null;
-    const teams = [...allTeams, ...inviteTeams];
+    // const teams = [...allTeams, ...inviteTeams];
+    const { teams, username } = me;
     if(!teams.length) {
         return (
             <div>
@@ -42,7 +43,8 @@ const ViewTeam = (props) => {
     }));
     return (
         <AppLayout>
-            <Sidebar teams={teamsTh} team={team} currentTeamId={teamId|| 0 } />
+            <Sidebar teams={teamsTh} team={team} username={username}
+                     currentTeamId={teamId|| 0 } />
             {channel && <Header channelName={channel.name} />}
             {channel && <MessageContainer channelId={channel.id} />}
             {channel && <SendMessage channelName={channel.name} channelId={channel.id}/>}
@@ -50,4 +52,8 @@ const ViewTeam = (props) => {
     )
 };
 
-export default graphql(allTeamsQuery)(ViewTeam);
+export default graphql(meQuery, {
+    options: {
+        fetchPolicy: 'network-only'
+    }
+})(ViewTeam);

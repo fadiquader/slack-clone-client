@@ -11,7 +11,8 @@ const SendMessageWrapper = styled.div`
   padding: 10px;
 `;
 
-const ENTER_KEY = 13
+const ENTER_KEY = 13;
+
 const SendMessage = (props) => {
     const {
         values,

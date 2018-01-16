@@ -1,54 +1,67 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 import { Comment } from 'semantic-ui-react'
 
 import Messages from '../components/Messages';
+import MessageItem from '../components/MessageItem';
+import { messagesQuery, newChannelMessageSubscription } from '../graphql/message';
 
-const MessageItem = ({ message }) => (
-    <Comment>
-        {/*<Comment.Avatar src='/assets/images/avatar/small/matt.jpg' />*/}
-        <Comment.Content>
-            <Comment.Author as='a'>{message.user.username}</Comment.Author>
-            <Comment.Metadata>
-                <div>{message.created_at}</div>
-            </Comment.Metadata>
-            <Comment.Text>{message.text}</Comment.Text>
-            <Comment.Actions>
-                <Comment.Action>Reply</Comment.Action>
-            </Comment.Actions>
-        </Comment.Content>
-    </Comment>
-)
-
-const MessageContainer = (props)=> {
-    const { channelId, data: { loading, messages } } = props;
-    if(loading) {
-        return <div>loading...</div>
+class MessageContainer extends Component {
+    componentWillMount() {
+        this.unsubscribe = this.subscribe(this.props.channelId);
     }
-    return (
-        <Messages channelId={channelId}>
-            <Comment.Group>
-                {messages.map(msg => <MessageItem key={`message-${msg.id}`} message={msg} />)}
-            </Comment.Group>
-        </Messages>
-    )
-};
+    testFunc = () => {
+        console.log('test func')
+    }
+    componentWillReceiveProps({ channelId }) {
+        if (this.props.channelId !== channelId) {
+            if (this.unsubscribe) {
+                this.unsubscribe();
+            }
+            this.unsubscribe = this.subscribe(channelId);
+        }
+    }
 
-const messagesQuery = gql`
-query ($channelId: Int!) {
-  messages(channelId: $channelId) {
-     id
-      text
-      user {
-        username
-      }
-      created_at
-  }
+    componentWillUnmount() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+    }
+
+    subscribe = channelId => this.props.data.subscribeToMore({
+        document: newChannelMessageSubscription,
+        variables: { channelId },
+        updateQuery: (prev, { subscriptionData }) => {
+            if (!subscriptionData.data) {
+                return prev;
+            }
+            return {
+                ...prev,
+                messages: [...prev.messages, subscriptionData.data.newChannelMessage],
+            };
+        },
+    });
+
+    render() {
+        const { channelId, data: { loading, messages } } = this.props;
+        if(loading) {
+            return <div>loading...</div>
+        }
+        return (
+            <Messages channelId={channelId}>
+                <Comment.Group>
+                    {messages.map(msg => <MessageItem key={`message-${msg.id}-${channelId}`} message={msg} />)}
+                </Comment.Group>
+            </Messages>
+        )
+    }
 }
-`;
+
 export default graphql(messagesQuery, {
     variables: props => ({
         channelId: props.channelId,
+        options: {
+            fetchPolicy: 'network-only'
+        }
     })
 })(MessageContainer);
