@@ -2,8 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { Input } from 'semantic-ui-react';
 import { withFormik } from 'formik';
-import { compose, graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 
 const SendMessageWrapper = styled.div`
   grid-column: 3;
@@ -22,14 +20,14 @@ const SendMessage = (props) => {
         handleBlur,
         handleSubmit,
         isSubmitting,
-        channelName
+        placeholder
     } = props;
     return (
         <SendMessageWrapper>
             <Input
                 fluid name="message"
                 value={values.message}
-                placeholder={`Message #${channelName}`}
+                placeholder={`Message #${placeholder}`}
                 onChange={handleChange}
                 onKeyDown={e => {
                     if(e.keyCode === ENTER_KEY && !isSubmitting) {
@@ -41,37 +39,27 @@ const SendMessage = (props) => {
     )
 };
 
-const createMessageMutation = gql`
-mutation($channelId: Int!, $text: String!){
-  createMessage(channelId: $channelId, text: $text)
-}
-`;
 
-const SendMessageWithFormik = compose(
-    graphql(createMessageMutation),
-    withFormik({
-        mapPropsToValues: props => ({ message: '' }),
-        validate: (values, props) => {
-            const errors = {};
-            // values.name
-            return errors
-        },
-        handleSubmit: async (values, {
-            props: { channelId, mutate },
-            setSubmitting, setErrors,
-            resetForm
-        }) => {
-            if(!values.message || !values.message.trim()) {
-                setSubmitting(false);
-                return;
-            }
-            const response = await mutate({
-                variables: {channelId, text: values.message},
 
-            });
+const SendMessageWithFormik = withFormik({
+    mapPropsToValues: props => ({ message: '' }),
+    validate: (values, props) => {
+        const errors = {};
+        // values.name
+        return errors
+    },
+    handleSubmit: async (values, {
+        props: { onSubmit, channelId, mutate },
+        setSubmitting, setErrors,
+        resetForm
+    }) => {
+        if(!values.message || !values.message.trim()) {
             setSubmitting(false);
-            resetForm();
+            return;
         }
-    })
-)(SendMessage);
+        await onSubmit(values.message);
+        setSubmitting(false);
+        resetForm();
+    }
+})(SendMessage);
 export default SendMessageWithFormik

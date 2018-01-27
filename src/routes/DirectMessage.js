@@ -13,7 +13,7 @@ import MessageContainer from '../containers/MessageContainer';
 
 import { meQuery } from '../graphql/team';
 
-const ViewTeam = (props) => {
+const DirectMessage = (props) => {
     const { mutate, match: { params }, data: { loading, me } } = props;
     if(loading) return null;
     // const teams = [...allTeams, ...inviteTeams];
@@ -25,7 +25,7 @@ const ViewTeam = (props) => {
             </div>
         )
     }
-    const { teamId, channelId } = params;
+    const { teamId, channelId, userId } = params;
     const teamIdInt = parseInt(teamId || 0, 10);
     const channelIdInt = parseInt(channelId || 0, 10);
     if(isNaN(teamIdInt) || isNaN(channelIdInt)) {
@@ -37,8 +37,7 @@ const ViewTeam = (props) => {
     }
     const teamIdx = !!teamId ? findIndex(teams, ['id', parseInt(teamIdInt, 10)]) : 0;
     const team = teams[teamIdx];
-    const channelIdx = !!channelId ? findIndex(team.channels, ['id', parseInt(channelIdInt, 10)]) : 0;
-    const channel = team.channels[channelIdx];
+
     const teamsTh = teams.map(({ id, name }) => ({
         id, letter: name.charAt(0).toUpperCase()
     }));
@@ -46,15 +45,10 @@ const ViewTeam = (props) => {
         <AppLayout>
             <Sidebar teams={teamsTh} team={team} username={username}
                      currentTeamId={teamId|| 0 } />
-            {channel && <Header channelName={channel.name} />}
-            {channel && <MessageContainer channelId={channel.id} />}
-            {channel &&
-            <SendMessage
-                placeholder={channel.name}
-                onSubmit={async text => {
-                    await mutate({ variables: { text, channelId: channel.id }})
-                }}/>
-            }
+            {/*<Header channelName={channel.name} />*/}
+            {/*<MessageContainer channelId={channel.id} />*/}
+            <SendMessage onSubmit={async text => null}
+                         placeholder={userId} />
         </AppLayout>
     )
 };
@@ -65,7 +59,9 @@ mutation($channelId: Int!, $text: String!){
 }
 `;
 
-export default compose(
-    graphql(createMessageMutation),
-graphql(meQuery, {options: { fetchPolicy: 'network-only' }}),
-)(ViewTeam);
+const DirectMessageWithGraph = compose(
+    graphql(meQuery, { options: { fetchPolicy: 'network-only' }}),
+    // graphql(createMessageMutation),
+
+)(DirectMessage)
+export default DirectMessageWithGraph;
