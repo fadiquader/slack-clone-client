@@ -48,9 +48,9 @@ const Bubble = ({ on = true }) => (on ? <Green>●</Green> : '○');
 
 const channel = ({ id, name }, teamId) => <Link key={`channel-${id}`} to={`/view-team/${teamId}/${id}`}><SideBarListItem># {name}</SideBarListItem></Link>;
 
-const user = ({ id, name }) => (
+const user = ({ id, username }, teamId) => (
     <SideBarListItem key={`user-${id}`}>
-        <Bubble /> {name}
+        <Link to={`/view-team/user/${teamId}/${id}`}><Bubble /> {username}</Link>
     </SideBarListItem>
 );
 
@@ -65,7 +65,8 @@ class Channels extends Component {
             onAddChannelClick,
             teamId,
             isOwner,
-            onInvitePeopleClick
+            onInvitePeopleClick,
+            onDirectMessageClick
         } = this.props;
         return (
             <ChannelWrapper>
@@ -86,8 +87,8 @@ class Channels extends Component {
                 </div>
                 <div>
                     <SideBarList>
-                        <SideBarListHeader>Direct Messages</SideBarListHeader>
-                        {users.map(user)}
+                        <SideBarListHeader>Direct Messages <Icon onClick={onDirectMessageClick} name="add circle" /></SideBarListHeader>
+                        {users.map(u => user(u, teamId))}
                     </SideBarList>
                 </div>
                 {isOwner && <div>

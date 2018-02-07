@@ -24,3 +24,16 @@ subscription($channelId: Int!) {
   }
 }
 `;
+
+export const directMessagesQuery = gql`
+query($teamId: Int!, $userId: Int!) {
+  directMessages(teamId: $teamId, otherUserId: $userId) {
+    id
+    sender {
+      username
+    }
+    text
+    created_at
+  }
+}
+`;

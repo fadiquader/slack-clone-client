@@ -47,7 +47,7 @@ const InvitePeopleModal = (props) => {
                             onClick={handleSubmit}
                             loading={isSubmitting}
                         >
-                            Create A Channel
+                            Invite
                         </Button>
                         <Button disabled={isSubmitting} color='red' onClick={onClose}>
                             Cancel

@@ -9,7 +9,7 @@ import Messages from '../components/Messages';
 import SendMessage from '../components/SendMessage';
 import AppLayout from '../components/AppLayout';
 import Sidebar from '../containers/Sidebar';
-import MessageContainer from '../containers/MessageContainer';
+import DirectMessageContainer from '../containers/DirectMessageContainer';
 
 import { meQuery } from '../graphql/team';
 
@@ -25,10 +25,9 @@ const DirectMessage = (props) => {
             </div>
         )
     }
-    const { teamId, channelId, userId } = params;
+    const { teamId, userId } = params;
     const teamIdInt = parseInt(teamId || 0, 10);
-    const channelIdInt = parseInt(channelId || 0, 10);
-    if(isNaN(teamIdInt) || isNaN(channelIdInt)) {
+    if(isNaN(teamIdInt)) {
         return (
             <div>
                 Invalid parameters, <Link to={`/view-team`}>Go back</Link>
@@ -45,23 +44,30 @@ const DirectMessage = (props) => {
         <AppLayout>
             <Sidebar teams={teamsTh} team={team} username={username}
                      currentTeamId={teamId|| 0 } />
-            {/*<Header channelName={channel.name} />*/}
-            {/*<MessageContainer channelId={channel.id} />*/}
-            <SendMessage onSubmit={async text => null}
-                         placeholder={userId} />
+            <Header channelName={"aa"} />
+            <DirectMessageContainer teamId={teamId} userId={userId} />
+            <SendMessage onSubmit={async text => {
+                await mutate({
+                    variables: {
+                        text,
+                        receiverId: userId,
+                        teamId
+                    }
+                })
+            }} placeholder={userId} />
         </AppLayout>
     )
 };
 
-const createMessageMutation = gql`
-mutation($channelId: Int!, $text: String!){
-  createMessage(channelId: $channelId, text: $text)
+const createDirectMessageMutation = gql`
+mutation ($receiverId: Int!, $text: String!, $teamId: Int!) {
+  createDirectMessage(receiverId: $receiverId, text: $text, teamId: $teamId)
 }
 `;
 
 const DirectMessageWithGraph = compose(
     graphql(meQuery, { options: { fetchPolicy: 'network-only' }}),
-    // graphql(createMessageMutation),
+    graphql(createDirectMessageMutation),
 
 )(DirectMessage)
 export default DirectMessageWithGraph;

@@ -5,12 +5,19 @@ import Channels from '../components/Channels';
 import Teams from '../components/Teams';
 import AddChannelModal from '../components/AddChannelModal';
 import InvitePeopleModal from '../components/InvitePeopleModal';
+import DirectMessageModal from '../components/DirectMessageModal';
 
 class Sidebar extends Component {
 
     state = {
         openAddChannelModal: false,
-        invitePeopleModal: false
+        invitePeopleModal: false,
+        openDirectMessageModal: false,
+    };
+
+    toggleDirectMessageModal = (e) => {
+        if(e) e.preventDefault();
+        this.setState(prev => ({ openDirectMessageModal: !prev.openDirectMessageModal }))
     };
 
     handleOpenAddChannelClick = () => {
@@ -33,7 +40,7 @@ class Sidebar extends Component {
 
     render () {
         const { teams, team, username } = this.props;
-        const { openAddChannelModal, invitePeopleModal } = this.state;
+        const { openAddChannelModal, invitePeopleModal, openDirectMessageModal } = this.state;
         return [
             <Teams
                 key="sidebar-teams"
@@ -46,14 +53,21 @@ class Sidebar extends Component {
                 teamId={team.id}
                 isOwner={team.admin}
                 channels={team.channels}
-                users={[]}
+                users={team.directMessageMembers}
                 onAddChannelClick={this.handleOpenAddChannelClick}
                 onInvitePeopleClick={this.handleInvitePeopleClick}
+                onDirectMessageClick={this.toggleDirectMessageModal}
             />,
+            <DirectMessageModal
+                key="sidebar-add-direct-message-modal"
+                teamId={team.id}
+                onClose={this.toggleDirectMessageModal}
+                open={openDirectMessageModal}
+            /> ,
             <AddChannelModal
                 key="sidebar-add-channel-modal"
                 teamId={team.id}
-                onClose={this.handleCloseAddChannelClick}
+                onClose={this.toggleDirectMessageModal}
                 open={openAddChannelModal}
             /> ,
             <InvitePeopleModal
