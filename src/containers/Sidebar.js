@@ -41,6 +41,7 @@ class Sidebar extends Component {
     render () {
         const { teams, team, username } = this.props;
         const { openAddChannelModal, invitePeopleModal, openDirectMessageModal } = this.state;
+
         return [
             <Teams
                 key="sidebar-teams"

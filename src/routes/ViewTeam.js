@@ -67,5 +67,5 @@ mutation($channelId: Int!, $text: String!){
 
 export default compose(
     graphql(createMessageMutation),
-graphql(meQuery, {options: { fetchPolicy: 'network-only' }}),
+    graphql(meQuery, {options: { fetchPolicy: 'network-only' }}),
 )(ViewTeam);

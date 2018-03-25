@@ -37,3 +37,16 @@ query($teamId: Int!, $userId: Int!) {
   }
 }
 `;
+
+export const newDirectMessageSubscription = gql`
+  subscription($teamId: Int!, $userId: Int!) {
+    newDirectMessage(teamId: $teamId, userId: $userId) {
+      id
+      sender {
+        username
+      }
+      text
+      created_at
+    }
+  }
+`;

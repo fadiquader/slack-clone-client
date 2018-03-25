@@ -14,7 +14,7 @@ import DirectMessageContainer from '../containers/DirectMessageContainer';
 import { meQuery } from '../graphql/team';
 
 const DirectMessage = (props) => {
-    const { mutate, match: { params }, data: { loading, me } } = props;
+    const { mutate, match: { params }, data: { loading, me, getUser } } = props;
     if(loading) return null;
     // const teams = [...allTeams, ...inviteTeams];
     const { teams, username } = me;
@@ -44,7 +44,7 @@ const DirectMessage = (props) => {
         <AppLayout>
             <Sidebar teams={teamsTh} team={team} username={username}
                      currentTeamId={teamId|| 0 } />
-            <Header channelName={"aa"} />
+            <Header channelName={getUser.username} />
             <DirectMessageContainer teamId={teamId} userId={userId} />
             <SendMessage onSubmit={async text => {
                 await mutate({
@@ -52,12 +52,50 @@ const DirectMessage = (props) => {
                         text,
                         receiverId: userId,
                         teamId
+                    },
+                    optimisticResponse: true,
+                    update: store => {
+                        const data = store.readQuery({ query: meQuery })
+                        const teamIdx2 = findIndex(data.me.teams, ['id', team.id])
+                        const notAlreadyThere = data.me.teams[teamIdx2].directMessageMembers.every(member => member.id !== parseInt(userId, 10))
+                        if(!notAlreadyThere) return;
+                        data.me.teams[teamIdx2].directMessageMembers.push({
+                            __typename: 'User',
+                            id: userId,
+                            username: getUser.username,
+                        })
+                        store.writeQuery({ query: meQuery, data })
                     }
                 })
             }} placeholder={userId} />
         </AppLayout>
     )
 };
+
+const directMessageMeQuery = gql`
+  query($userId: Int!) {
+    getUser(userId: $userId) {
+      username
+    }
+    me {
+      id
+      username
+      teams {
+        id
+        name
+        admin
+        directMessageMembers {
+          id
+          username
+        }
+        channels {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
 
 const createDirectMessageMutation = gql`
 mutation ($receiverId: Int!, $text: String!, $teamId: Int!) {
@@ -66,7 +104,13 @@ mutation ($receiverId: Int!, $text: String!, $teamId: Int!) {
 `;
 
 const DirectMessageWithGraph = compose(
-    graphql(meQuery, { options: { fetchPolicy: 'network-only' }}),
+    // graphql(meQuery, { options: { fetchPolicy: 'network-only' }}),
+    graphql(directMessageMeQuery, {
+        options: props => ({
+            variables: { userId: props.match.params.userId },
+            fetchPolicy: 'network-only',
+        }),
+    }),
     graphql(createDirectMessageMutation),
 
 )(DirectMessage)
