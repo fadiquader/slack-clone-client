@@ -5,14 +5,13 @@ import { Comment } from 'semantic-ui-react'
 import Messages from '../components/Messages';
 import MessageItem from '../components/MessageItem';
 import { messagesQuery, newChannelMessageSubscription } from '../graphql/message';
+import FileUpload from '../components/FileUpload';
 
 class MessageContainer extends Component {
     componentWillMount() {
         this.unsubscribe = this.subscribe(this.props.channelId);
     }
-    testFunc = () => {
-        console.log('test func')
-    }
+
     componentWillReceiveProps({ channelId }) {
         if (this.props.channelId !== channelId) {
             if (this.unsubscribe) {
@@ -49,9 +48,11 @@ class MessageContainer extends Component {
         }
         return (
             <Messages channelId={channelId}>
-                <Comment.Group>
-                    {messages.map(msg => <MessageItem key={`message-${msg.id}-${channelId}`} message={msg} />)}
-                </Comment.Group>
+                <FileUpload disableClick channelId={channelId}>
+                    <Comment.Group>
+                        {messages.map(msg => <MessageItem key={`message-${msg.id}-${channelId}`} message={msg} />)}
+                    </Comment.Group>
+                </FileUpload>
             </Messages>
         )
     }

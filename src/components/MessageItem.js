@@ -9,7 +9,7 @@ const MessageItem = ({ message }) => (
             <Comment.Metadata>
                 <div>{message.created_at}</div>
             </Comment.Metadata>
-            <Comment.Text>{message.text}</Comment.Text>
+            {message.url ? <img src={`${message.url}`} alt="" /> : <Comment.Text>{message.text}</Comment.Text>}
             <Comment.Actions>
                 <Comment.Action>Reply</Comment.Action>
             </Comment.Actions>

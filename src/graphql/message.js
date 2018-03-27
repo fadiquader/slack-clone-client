@@ -8,6 +8,8 @@ query ($channelId: Int!) {
       user {
         username
       }
+      url
+      filetype
       created_at
   }
 }

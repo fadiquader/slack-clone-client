@@ -1,12 +1,17 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Input } from 'semantic-ui-react';
+import { Input, Button, Icon } from 'semantic-ui-react';
 import { withFormik } from 'formik';
+
+import FileUpload from './FileUpload';
 
 const SendMessageWrapper = styled.div`
   grid-column: 3;
   grid-row: 3;
   padding: 10px;
+  display: grid;
+  grid-template-columns: 50px auto;
+  grid-template-rows: auto 1fr auto;
 `;
 
 const ENTER_KEY = 13;
@@ -20,10 +25,16 @@ const SendMessage = (props) => {
         handleBlur,
         handleSubmit,
         isSubmitting,
-        placeholder
+        placeholder,
+        channelId,
     } = props;
     return (
         <SendMessageWrapper>
+            <FileUpload channelId={channelId}>
+                <Button icon >
+                    <Icon name="plus" />
+                </Button>
+            </FileUpload>
             <Input
                 fluid name="message"
                 value={values.message}

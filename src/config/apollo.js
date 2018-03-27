@@ -6,8 +6,10 @@ import { ApolloLink, split } from 'apollo-link';
 import { WebSocketLink } from 'apollo-link-ws';
 import { getMainDefinition } from 'apollo-utilities';
 // subscriptions-transport-ws
+import createFileLink from './createFileLink';
 
-const httpLink = createHttpLink({ uri: 'http://localhost:3001/graphql' });
+// const httpLink = createHttpLink({ uri: 'http://localhost:3001/graphql' });
+const httpLink = createFileLink({ uri: 'http://localhost:3001/graphql' });
 
 const authMiddleware = setContext((_, { headers }) => ({
     headers: {
