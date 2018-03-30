@@ -10,6 +10,7 @@ import {
 } from '../graphql/message';
 
 class DirectMessageContainer extends Component {
+    scroller = null
     state = {
         hasMoreItems: true
     }
@@ -48,6 +49,38 @@ class DirectMessageContainer extends Component {
         },
     });
 
+    handleScroll = (e) => {
+        const { teamId, userId, data: { loading, directMessages, fetchMore } } = this.props;
+        const scrollTop = e.target.scrollTop
+        if (
+            this.scroller &&
+            scrollTop < 100 &&
+            this.state.hasMoreItems &&
+            directMessages.length >= 10 && !loading
+        ) {
+            fetchMore({
+                variables: {
+                    teamId, userId,
+                    cursor: directMessages[directMessages.length - 1].created_at,
+                },
+                updateQuery: (previousResult, { fetchMoreResult }) => {
+                    if (!fetchMoreResult) {
+                        return previousResult;
+                    }
+
+                    if (fetchMoreResult.directMessages.length < 35) {
+                        this.setState({ hasMoreItems: false });
+                    }
+
+                    return {
+                        ...previousResult,
+                        directMessages: [...previousResult.directMessages, ...fetchMoreResult.directMessages],
+                    };
+                },
+            });
+        }
+    }
+
     render() {
         const { teamId, userId, data: { loading, directMessages } } = this.props;
         const { hasMoreItems } = this.state;
@@ -55,14 +88,28 @@ class DirectMessageContainer extends Component {
             return <div>loading...</div>
         }
         return (
-            <Messages>
+            <div
+                style={{
+                    gridColumn: 3,
+                    gridRow: 2,
+                    paddingLeft: '20px',
+                    paddingRight: '30px',
+                    display: 'flex',
+                    flexDirection: 'column-reverse',
+                    overflowY: 'auto'
+                }}
+                onScroll={this.handleScroll}
+                ref={(scroller) => {
+                    this.scroller = scroller;
+                }}
+            >
                 <Comment.Group>
                     {
-                        hasMoreItems &&
+                        hasMoreItems && directMessages.length >= 10 &&
                         <Button onClick={() => this.props.data.fetchMore({
                             variables: {
                                 teamId, userId,
-                                offset: directMessages.length
+                                cursor: directMessages[directMessages.length - 1].created_at
                             },
                             updateQuery: (previousResult, { fetchMoreResult }) => {
                                 if (!fetchMoreResult) {
@@ -102,7 +149,7 @@ class DirectMessageContainer extends Component {
                         </Comment>
                     )}
                 </Comment.Group>
-            </Messages>
+            </div>
         )
     }
 }
@@ -113,9 +160,9 @@ export default graphql(directMessagesQuery, {
             fetchPolicy: 'network-only'
         },
         variables: {
-            offset: 0,
             teamId: props.teamId,
             userId: props.userId,
+            cursor: null
         }
     }),
 })(DirectMessageContainer);
