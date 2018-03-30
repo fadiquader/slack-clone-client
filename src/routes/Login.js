@@ -9,7 +9,7 @@ import {
     Input, Button,
     Container, Header
 } from 'semantic-ui-react';
-
+import { wsLink } from '../config/apollo'
 const FormField = Form.Field;
 
 class Login extends Component {
@@ -36,6 +36,7 @@ class Login extends Component {
         if(ok) {
             localStorage.setItem('token', token);
             localStorage.setItem('refreshToken', refreshToken);
+            wsLink.subscriptionClient.tryReconnect();
             this.props.history.push('/')
         } else {
             const err = {};
