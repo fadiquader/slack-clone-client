@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
-import { Comment } from 'semantic-ui-react'
+import { Comment, Button } from 'semantic-ui-react'
 
 import Messages from '../components/Messages';
 import MessageItem from '../components/MessageItem';
@@ -10,6 +10,9 @@ import {
 } from '../graphql/message';
 
 class DirectMessageContainer extends Component {
+    state = {
+        hasMoreItems: true
+    }
     componentWillMount() {
         this.unsubscribe = this.subscribe(this.props.teamId, this.props.userId);
     }
@@ -40,20 +43,50 @@ class DirectMessageContainer extends Component {
             }
             return {
                 ...prev,
-                directMessages: [...prev.directMessages, subscriptionData.data.newDirectMessage],
+                directMessages: [subscriptionData.data.newDirectMessage, ...prev.directMessages,],
             };
         },
     });
 
     render() {
-        const { teamId, data: { loading, directMessages } } = this.props;
+        const { teamId, userId, data: { loading, directMessages } } = this.props;
+        const { hasMoreItems } = this.state;
         if(loading) {
             return <div>loading...</div>
         }
         return (
             <Messages>
                 <Comment.Group>
-                    {directMessages.map((msg, i) =>
+                    {
+                        hasMoreItems &&
+                        <Button onClick={() => this.props.data.fetchMore({
+                            variables: {
+                                teamId, userId,
+                                offset: directMessages.length
+                            },
+                            updateQuery: (previousResult, { fetchMoreResult }) => {
+                                if (!fetchMoreResult) {
+                                    return previousResult;
+                                }
+
+                                if (fetchMoreResult.directMessages.length < 10) {
+                                    this.setState({ hasMoreItems: false });
+                                }
+
+                                return {
+                                    ...previousResult,
+                                    directMessages: [
+                                        ...previousResult.directMessages,
+                                        ...fetchMoreResult.directMessages
+                                    ],
+                                };
+                            },
+                        })}>
+                            Load More
+                        </Button>
+                    }
+
+                    {directMessages.slice().reverse().map((msg, i) =>
                         <Comment key={`${msg.id}-direct-message`} >
                             {/*<Comment.Avatar src='/assets/images/avatar/small/matt.jpg' />*/}
                             <Comment.Content>
@@ -76,10 +109,13 @@ class DirectMessageContainer extends Component {
 
 export default graphql(directMessagesQuery, {
     options: props => ({
-        teamId: props.teamId,
-        userId: props.userId,
         options: {
             fetchPolicy: 'network-only'
+        },
+        variables: {
+            offset: 0,
+            teamId: props.teamId,
+            userId: props.userId,
         }
     }),
 })(DirectMessageContainer);

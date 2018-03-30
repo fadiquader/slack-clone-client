@@ -28,8 +28,8 @@ subscription($channelId: Int!) {
 `;
 
 export const directMessagesQuery = gql`
-query($teamId: Int!, $userId: Int!) {
-  directMessages(teamId: $teamId, otherUserId: $userId) {
+query($offset: Int!, $teamId: Int!, $userId: Int!) {
+  directMessages(offset:$offset, teamId: $teamId, otherUserId: $userId) {
     id
     sender {
       username

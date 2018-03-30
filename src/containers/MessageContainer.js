@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
-import { Comment } from 'semantic-ui-react'
+import { Comment, Button } from 'semantic-ui-react'
 
 import Messages from '../components/Messages';
 import MessageItem from '../components/MessageItem';
@@ -34,6 +34,7 @@ class MessageContainer extends Component {
             if (!subscriptionData.data) {
                 return prev;
             }
+            console.log(prev, subscriptionData)
             return {
                 ...prev,
                 messages: [...prev.messages, subscriptionData.data.newChannelMessage],
@@ -46,6 +47,8 @@ class MessageContainer extends Component {
         if(loading) {
             return <div>loading...</div>
         }
+        if(!messages) return <div>Error</div>
+        console.log(' this.props ',  this.props)
         return (
             <Messages channelId={channelId}>
                 <FileUpload disableClick channelId={channelId}>
@@ -59,10 +62,12 @@ class MessageContainer extends Component {
 }
 
 export default graphql(messagesQuery, {
-    variables: props => ({
-        channelId: props.channelId,
+    options: props => ({
+        variables: {
+            channelId: props.channelId,
+        },
         options: {
             fetchPolicy: 'network-only'
         }
-    })
+    }),
 })(MessageContainer);
